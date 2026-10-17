@@ -18,6 +18,7 @@ setup(
     name="nlvoorelkaar-reachout",
     version=VERSION,
     author="Noodzakelijk Online",
+    license="AGPL-3.0-only",
     description="Local-first, review-gated NLvoorelkaar outreach operations",
     long_description=(ROOT / "README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
