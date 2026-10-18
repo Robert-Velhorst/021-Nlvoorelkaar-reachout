@@ -21,7 +21,7 @@ GitHub secret scanning and push protection are enabled. Its historical alerts re
 - External search, send, and Drive features are disabled by default.
 - Live NLvoorelkaar login, search, and send each require a valid private written-approval record that names the approved actions and current terms version.
 - The web API requires a bearer token of at least 32 characters, applies trusted-host validation, bounded request rates, a restrictive CSP, no-store responses, and no CORS grant.
-- The web server binds to loopback by default. Follow `DEPLOYMENT_TARGET.md` for production; Hetzner is the target, and new production deployments must not use Vercel or ngrok. Do not claim public or production readiness until the deployed ingress, TLS, host/origin rules, rate limits, backups, monitoring, and rollback have been verified.
+- The web server binds to loopback by default. Follow `DEPLOYMENT_TARGET.md` for production; Hetzner is the target, and new production deployments must not use unapproved serverless hosting or public tunnels. Do not claim public or production readiness until the deployed ingress, TLS, host/origin rules, rate limits, backups, monitoring, and rollback have been verified.
 - Message sending requires a persisted draft, an exact approved snapshot, a bounded explicit action, and a durable attempt/audit record.
 - Manual sends require operator-entered evidence. The app never infers that a copied message was sent.
 - Stale in-flight sends become `external_outcome_unknown`; no automatic retry occurs.
