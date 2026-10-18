@@ -1,8 +1,14 @@
 # Security Policy
 
-## Reporting
+## Supported versions
 
-Report vulnerabilities privately to the repository owner. Include the affected path, reproduction, impact, and remediation proposal. Do not place credentials, tokens, personal data, or message content in a public issue.
+Security reports are welcome for the current `main` branch and published releases. This project does not promise a support window or guaranteed fixes for specific versions. Maintainers triage reports and prioritize fixes as capacity permits; no response, remediation, or backport deadline is guaranteed.
+
+## Reporting a vulnerability
+
+Use **Report a vulnerability** on the repository's [GitHub Security tab](https://github.com/Robert-Velhorst/021-Nlvoorelkaar-reachout/security). Private vulnerability reporting is enabled. Include the affected path or release, reproduction steps, and impact. Do not include credentials, tokens, personal data, or message content in public issues or reports.
+
+If private reporting is unavailable, open a public issue with only the title **Request private security contact**. Do not include vulnerability details or proof-of-concept material until a private channel is available.
 
 ## Compromised Historical Credentials
 
@@ -15,7 +21,7 @@ GitHub secret scanning and push protection are enabled. Its historical alerts re
 - External search, send, and Drive features are disabled by default.
 - Live NLvoorelkaar login, search, and send each require a valid private written-approval record that names the approved actions and current terms version.
 - The web API requires a bearer token of at least 32 characters, applies trusted-host validation, bounded request rates, a restrictive CSP, no-store responses, and no CORS grant.
-- The web server binds to loopback by default. Public access is supported through a health-checked ngrok HTTPS tunnel, not direct public binding.
+- The web server binds to loopback by default. Follow `DEPLOYMENT_TARGET.md` for production; Hetzner is the target, and new production deployments must not use unapproved serverless hosting or public tunnels. Do not claim public or production readiness until the deployed ingress, TLS, host/origin rules, rate limits, backups, monitoring, and rollback have been verified.
 - Message sending requires a persisted draft, an exact approved snapshot, a bounded explicit action, and a durable attempt/audit record.
 - Manual sends require operator-entered evidence. The app never infers that a copied message was sent.
 - Stale in-flight sends become `external_outcome_unknown`; no automatic retry occurs.
@@ -27,6 +33,10 @@ GitHub secret scanning and push protection are enabled. Its historical alerts re
 ## Local Data
 
 Protect `data/`, `logs/`, `backups/`, and exports with OS account controls and encrypted storage. They can contain personal data. Use Privacy Review for retention proposals, export, archival, and redaction. Deletion/redaction actions require explicit operator action and are audited.
+
+## Coordinated disclosure
+
+Allow maintainers reasonable time to investigate and coordinate a fix before public disclosure. No response-time or remediation-time guarantee is offered.
 
 ## Release Gate
 
