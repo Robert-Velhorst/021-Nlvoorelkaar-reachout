@@ -50,7 +50,6 @@ try {
     $releaseScripts = Join-Path $releaseRoot "scripts"
     New-Item -ItemType Directory -Force $releaseScripts | Out-Null
     Copy-Item -LiteralPath (Join-Path $repo "scripts\start-web.ps1") -Destination $releaseScripts
-    Copy-Item -LiteralPath (Join-Path $repo "scripts\start-ngrok.ps1") -Destination $releaseScripts
     @"
 This archive is an unsigned Windows build with GitHub artifact provenance.
 Verify the adjacent SHA-256 file before use.

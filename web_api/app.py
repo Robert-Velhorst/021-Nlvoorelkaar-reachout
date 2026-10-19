@@ -121,7 +121,7 @@ def create_app(
         item.strip()
         for item in os.environ.get(
             "NLVE_WEB_TRUSTED_HOSTS",
-            "localhost,127.0.0.1,testserver,*.ngrok.app,*.ngrok-free.app,*.ngrok-free.dev",
+            "localhost,127.0.0.1,testserver",
         ).split(",")
         if item.strip()
     ]

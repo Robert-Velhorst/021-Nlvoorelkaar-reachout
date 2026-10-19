@@ -212,18 +212,6 @@ The API uses bearer authentication, disables public docs, applies trusted-host
 checks, sets defensive browser headers, limits request rates, and bounds uploads
 and pagination.
 
-### ngrok Access
-
-The app can be exposed through an operator-controlled ngrok HTTPS tunnel while
-the server remains bound to `127.0.0.1`.
-
-The launcher starts local web and ngrok processes, waits for local health,
-discovers the HTTPS tunnel, verifies public health, writes ignored runtime
-metadata, and cleans up only processes it created if startup fails.
-
-Public tunnel access does not authorize provider automation. Live provider
-actions still require the provider flags and private written approval record.
-
 ### HAI Connector
 
 The HAI integration is read-only and privacy-minimized. It can expose review work
@@ -252,7 +240,6 @@ mutate NLvoorelkaar Reachout.
 | `connectors/hai_bridge.py` | Authenticated HAI Generic JSON Feed writer. |
 | `google_drive/google_api_services.py` | Optional explicit Google Drive backup adapter. |
 | `scripts/start-web.ps1` | Starts the loopback web server. |
-| `scripts/start-ngrok.ps1` | Starts web plus ngrok and verifies public health. |
 | `scripts/build-release.ps1` | Builds the unsigned Windows release archive, checksum, and SBOM. |
 | `scripts/check_repository_safety.py` | Rejects committed runtime data, credentials, tokens, and unsafe paths. |
 | `docs/` | Operator, API, deployment, security, audit, verification, and roadmap documentation. |
@@ -296,7 +283,6 @@ Required:
 Optional:
 
 - Node.js `24` when rebuilding the web frontend from source
-- ngrok client for a public HTTPS tunnel
 - NLvoorelkaar account for explicitly approved live login/search/send
 - newly rotated Google OAuth desktop credentials for explicitly enabled Drive
   backup
@@ -368,25 +354,9 @@ Enter the same bearer token in the login screen. The browser stores the token in
 session storage, not local storage, so it is cleared when the tab session ends or
 the operator disconnects.
 
-## Quick Start: ngrok HTTPS Tunnel
+## Hetzner deployment
 
-Install and authorize the official ngrok client separately, then run:
-
-```powershell
-$env:NLVE_WEB_API_TOKEN = "use-a-private-random-value-of-at-least-32-characters"
-.\scripts\start-ngrok.ps1 -Port 8765
-```
-
-For a reserved ngrok domain:
-
-```powershell
-.\scripts\start-ngrok.ps1 -Port 8765 -Domain your-domain.ngrok.app
-```
-
-If using a custom domain, include the hostname in `NLVE_WEB_TRUSTED_HOSTS`.
-
-Runtime connection details are written to ignored `data/web-runtime.json` only
-after local and public health checks pass.
+Public hosting targets Hetzner. Keep workstation runs on loopback and follow `DEPLOYMENT_TARGET.md` and the deployment runbook for public HTTPS. This repository no longer ships a workstation tunnel.
 
 ## Safe Production Defaults
 
@@ -650,7 +620,7 @@ include:
 - Windows release workflow
 
 Local tests or mocks are not treated as proof of live NLvoorelkaar acceptance,
-Google Drive acceptance, ngrok account availability, or signed Windows release
+Google Drive acceptance, Hetzner deployment acceptance, or signed Windows release
 readiness.
 
 ## Architecture Notes for Developers
@@ -684,7 +654,7 @@ following cannot be truthfully completed by source code alone:
 - current NLvoorelkaar live selector/login/send acceptance
 - owner-side Google credential revocation and rotation
 - real Google Drive upload/readback/restore acceptance with private credentials
-- account-specific ngrok endpoint availability
+- Hetzner host, domain, and TLS acceptance
 - Windows code-signing certificate and signed clean-machine acceptance
 - manual accessibility and non-technical operator acceptance
 
@@ -697,7 +667,7 @@ operator documentation until the owner completes them with real evidence.
 | --- | --- |
 | `docs/OPERATOR_RUNBOOK.md` | How to run the product safely as an operator. |
 | `docs/API_DOCUMENTATION.md` | Web API routes, authentication, errors, and service notes. |
-| `docs/WEB_DEPLOYMENT.md` | Local web and ngrok deployment. |
+| `docs/WEB_DEPLOYMENT.md` | Local web and Hetzner hosting. |
 | `docs/HAI_CONNECTOR.md` | Read-only HAI feed setup and limits. |
 | `docs/SECURITY_AND_PRIVACY.md` | Threat model, privacy design, and controls. |
 | `docs/TECHNICAL_AUDIT.md` | Audit findings and dispositions. |
