@@ -27,6 +27,6 @@ Register that file in HAI as:
 }
 ```
 
-For separate hosts, point `NLVE_API_URL` at the verified ngrok HTTPS URL. The bearer token remains in an HTTP header and is never placed in a feed URL or HAI source URI. Schedule the bridge at a conservative interval; HAI deduplicates stable item revisions during sync.
+For separate hosts, point `NLVE_API_URL` at the verified Hetzner HTTPS origin behind the approved reverse proxy. The bearer token remains in an HTTP header and is never placed in a feed URL or HAI source URI. Schedule the bridge at a conservative interval; HAI deduplicates stable item revisions during sync.
 
 HAI remains read-only. It can propose or organize review work, but it cannot approve drafts, send messages, clear Safety Stop, or mutate NLvoorelkaar Reachout.
