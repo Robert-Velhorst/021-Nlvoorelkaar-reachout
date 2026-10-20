@@ -54,3 +54,7 @@ cd web; npm.cmd ci; npm.cmd run build; npm.cmd audit --audit-level=high
 ```
 
 Do not claim live-provider readiness until the provider/account acceptance items in `docs/FINAL_VERIFICATION_REPORT.md` are complete.
+
+## Response and disclosure
+
+Reports are reviewed on a best-effort basis. No response or remediation timeframe is guaranteed. Coordinate any public disclosure with the maintainers so users have a reasonable opportunity to receive a fix.
