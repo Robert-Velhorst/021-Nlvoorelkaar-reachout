@@ -6,7 +6,7 @@ Use Python 3.10-3.12, install `requirements.txt`, then run `python run.py doctor
 
 Run the network-free release smoke test with `python run.py smoke` before using real records.
 
-For the browser interface, set a private `NLVE_WEB_API_TOKEN` of at least 32 characters and run `.\scripts\start-web.ps1`. For a public HTTPS session, use `.\scripts\start-ngrok.ps1` and verify the URL written to ignored `data/web-runtime.json`.
+For the browser interface, set a private `NLVE_WEB_API_TOKEN` of at least 32 characters and run `.\scripts\start-web.ps1`. Public hosting targets Hetzner. Keep workstation use on loopback and follow `DEPLOYMENT_TARGET.md` plus [Web and Hetzner Deployment](WEB_DEPLOYMENT.md) for hosted HTTPS.
 
 ## Normal Workflow
 

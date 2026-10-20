@@ -41,7 +41,7 @@ def test_web_api_requires_bearer_auth_and_exposes_health(tmp_path):
     assert response.json()["database"]["ready"] is True
     assert response.headers["content-security-policy"].startswith("default-src 'self'")
     assert response.headers["x-frame-options"] == "DENY"
-    assert client.get("/healthz", headers={"host": "example.ngrok-free.dev"}).status_code == 200
+    assert client.get("/healthz", headers={"host": "localhost"}).status_code == 200
     assert client.get("/healthz", headers={"host": "attacker.example"}).status_code == 400
 
 
@@ -123,7 +123,7 @@ def test_hai_bridge_uses_bearer_header_and_atomic_output(tmp_path, monkeypatch):
 
     monkeypatch.setattr("connectors.hai_bridge.requests.get", fake_get)
     destination = tmp_path / "feeds" / "nlve.json"
-    result = sync_feed("https://example.ngrok.app", TOKEN, str(destination), 50)
+    result = sync_feed("https://reachout.example.com", TOKEN, str(destination), 50)
     assert result["items"] == 0
     assert calls["headers"]["Authorization"] == f"Bearer {TOKEN}"
     assert "token" not in calls["url"].lower()
