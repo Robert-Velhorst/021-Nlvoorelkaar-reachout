@@ -68,9 +68,8 @@ message confirmation behavior.
 - Application version: `3.1.0`
 - Runtime model: single-operator, local-first application
 - Primary platform: Windows desktop
-- Supported Python: `3.10`, `3.11`, and `3.12`
-- Unsupported Python: `3.13+` and machine-default `3.14` are rejected by the
-  launcher
+- Supported Python: `3.10` through `3.15`; CI tests every supported minor
+- Latest stable Python: `3.15`
 - Database: local SQLite with schema migrations and foreign keys
 - Web interface: FastAPI plus compiled React/Vite assets
 - CLI: `nlve_cli.py` and packaged `NLVE-Operator.exe`
@@ -276,7 +275,7 @@ tokens, exports, or backup archives.
 Required:
 
 - Windows for the supported desktop/operator release path
-- Python `3.10`, `3.11`, or `3.12`
+- Python `3.10` through `3.15`
 - `pip`
 - local filesystem access for the SQLite database and backups
 
@@ -287,8 +286,8 @@ Optional:
 - newly rotated Google OAuth desktop credentials for explicitly enabled Drive
   backup
 
-The launcher intentionally rejects unsupported Python versions. If `python` on a
-machine points to Python `3.14`, use a supported Python executable instead.
+The launcher rejects Python versions outside the declared `3.10` through `3.15`
+range.
 
 ## Quick Start: Local Desktop
 
@@ -553,7 +552,7 @@ confirmed revocation and rotation.
 Create a supported Python environment:
 
 ```powershell
-py -3.12 -m venv .venv
+py -3.15 -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
@@ -608,7 +607,7 @@ provided separately.
 CI is designed to verify a clean checkout, not just the developer machine. Gates
 include:
 
-- Python `3.10`, `3.11`, and `3.12` test matrix
+- Python `3.10` through `3.15` test matrix
 - repository safety scan
 - reachable-history forbidden-path scan
 - Python compilation
