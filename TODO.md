@@ -10,6 +10,6 @@ Implemented repository work is tracked in `docs/GOAL_COMPLETION_MATRIX.md`. The 
 - Run a controlled Google Drive OAuth, upload, readback, and restore test with newly rotated private credentials.
 - Complete screen-reader and high-DPI manual UI review on supported Windows versions.
 - Sign the provenance-attested Windows artifact with an owner-controlled code-signing certificate before broad distribution.
-- Run an owner-authenticated ngrok acceptance session and record the assigned HTTPS URL only in ignored runtime state.
+- Complete owner-approved Hetzner HTTPS, reverse-proxy, backup, restore, and rollback acceptance before public cutover.
 
 Live flags must remain disabled until their corresponding provider acceptance work is complete.

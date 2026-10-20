@@ -95,11 +95,9 @@ def main(argv=None) -> int:
         _print({"sha256": approval_evidence_sha256(os.path.abspath(args.path))})
         return 0
     if args.command == "serve":
-        if args.host not in {"127.0.0.1", "localhost", "::1"} and os.environ.get(
-            "NLVE_WEB_ALLOW_NON_LOOPBACK", ""
-        ).strip().lower() not in {"1", "true", "yes", "on"}:
+        if args.host not in {"127.0.0.1", "localhost", "::1"}:
             raise RuntimeError(
-                "Non-loopback binding is disabled. Keep the server on 127.0.0.1 and expose it through ngrok."
+                "Non-loopback binding is disabled. Keep the server on loopback and use the approved Hetzner reverse proxy for public access."
             )
         if not 1 <= args.port <= 65535:
             raise ValueError("port must be between 1 and 65535")
