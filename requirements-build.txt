@@ -1,5 +1,5 @@
 -r requirements-dev.txt
-setuptools==84.0.0
+setuptools==84.2.0
 wheel==0.46.3
 build==1.5.0
 pyinstaller==6.22.3
