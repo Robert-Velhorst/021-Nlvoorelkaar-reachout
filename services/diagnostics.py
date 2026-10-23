@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from config.runtime import RuntimeSettings
+from run import SUPPORTED_MIN, SUPPORTED_MAX
 from database.database_manager import DatabaseManager
 from google_drive.google_api_services import GoogleDriveManager
 from services.outreach_ledger import OutreachLedger
@@ -40,12 +41,12 @@ class ApplicationDoctor:
     def run(self) -> Dict[str, Any]:
         checks: List[DiagnosticCheck] = []
         version = sys.version_info
-        supported = (3, 10) <= version[:2] <= (3, 12)
+        supported = SUPPORTED_MIN <= version[:2] <= SUPPORTED_MAX
         checks.append(DiagnosticCheck(
             "python",
             "pass" if supported else "warning",
             platform.python_version(),
-            "Use Python 3.10-3.12 for the supported runtime." if not supported else "",
+            "Use Python 3.15.1; supported compatibility versions are 3.11-3.15." if not supported else "",
         ))
 
         try:

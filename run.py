@@ -7,7 +7,7 @@ import importlib.util
 import sys
 
 
-SUPPORTED_MIN = (3, 10)
+SUPPORTED_MIN = (3, 11)
 SUPPORTED_MAX = (3, 15)
 REQUIRED_MODULES = ("bs4", "cryptography", "customtkinter", "requests")
 
