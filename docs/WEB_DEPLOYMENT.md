@@ -2,7 +2,7 @@
 
 ## Local web application
 
-Use Python 3.10-3.12 and install `requirements.txt`. Generate a private random bearer token with at least 32 characters, then start the loopback server:
+Use Python 3.15.1 and install `requirements.txt`. Python 3.11-3.15 are supported compatibility lines. Generate a private random bearer token with at least 32 characters, then start the loopback server:
 
 ```powershell
 $env:NLVE_WEB_API_TOKEN = "private-random-value-with-at-least-32-characters"

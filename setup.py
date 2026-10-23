@@ -46,7 +46,6 @@ setup(
         "Development Status :: 4 - Beta",
         "Intended Audience :: End Users/Desktop",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
@@ -54,7 +53,7 @@ setup(
         "Programming Language :: Python :: 3.15",
         "Operating System :: Microsoft :: Windows",
     ],
-    python_requires=">=3.10,<3.16",
+    python_requires=">=3.11,<3.16",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
