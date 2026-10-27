@@ -68,7 +68,7 @@ message confirmation behavior.
 - Application version: `3.1.0`
 - Runtime model: single-operator, local-first application
 - Primary platform: Windows desktop
-- Deployment target: Python `3.15.1`. Supported compatibility versions: `3.11` through `3.15`; CI tests every supported minor. Pillow 13 requires Python 3.11 or later.
+- Deployment target: Python `3.15.2`. Supported compatibility versions: `3.11` through `3.15`; CI tests every supported minor. Pillow 13 requires Python 3.11 or later.
 - Latest stable Python: `3.15`
 - Database: local SQLite with schema migrations and foreign keys
 - Web interface: FastAPI plus compiled React/Vite assets
@@ -275,7 +275,7 @@ tokens, exports, or backup archives.
 Required:
 
 - Windows for the supported desktop/operator release path
-- Python `3.15.1` recommended; supported compatibility versions `3.11` through `3.15`
+- Python `3.15.2` recommended; supported compatibility versions `3.11` through `3.15`
 - `pip`
 - local filesystem access for the SQLite database and backups
 

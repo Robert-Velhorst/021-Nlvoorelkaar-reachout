@@ -2,6 +2,9 @@
 
 from pathlib import Path
 import hashlib
+import importlib.metadata
+import ssl
+import sqlite3
 import json
 import os
 import shutil
@@ -38,17 +41,26 @@ def snapshot(folder, revision):
 
 
 def assert_payloads(folder, rows):
+    checkout = {}
     for name, row in rows.items():
-        assert hashlib.sha256((folder / name).read_bytes()).hexdigest() == row["sha256"], name
+        actual = (folder / name).read_bytes()
+        if hashlib.sha256(actual).hexdigest() != row["sha256"]:
+            attributes = git(folder, "check-attr", "-z", "eol", "--", name).split(b"\0")
+            assert attributes == [name.encode(), b"eol", b"crlf", b""], name
+            canonical = git(folder, "cat-file", "blob", row["blob"])
+            assert b"\r\n" not in canonical and actual == canonical.replace(b"\n", b"\r\n"), name
+        checkout[name] = hashlib.sha256(actual).hexdigest()
+    return checkout
 
 
 head = git(root, "rev-parse", "HEAD").decode().strip()
 before = snapshot(root, head)
 original = snapshot(root, base)
-assert_payloads(root, before)
+checkout_before = assert_payloads(root, before)
+(out / "checkout-before.json").write_text(json.dumps(checkout_before, indent=2) + "\n")
 original_unchanged = {
     name: row for name, row in original.items()
-    if name not in {"connectors/hai_bridge.py", "docs/HAI_CONNECTOR.md"}
+    if name not in {"connectors/hai_bridge.py", "docs/HAI_CONNECTOR.md", "requirements.txt", "requirements-dev.txt", "requirements-build.txt", "README.md", "docs/OPERATOR_RUNBOOK.md", "docs/WEB_DEPLOYMENT.md"}
 }
 assert all(before[name] == row for name, row in original_unchanged.items())
 assert new_case not in original
@@ -59,13 +71,22 @@ commands = []
 summary = {
     "head": head, "base": base,
     "original_cases_helpers_fixtures_assertions_selectors_timeouts_unchanged": True,
+    "declared_Git_CRLF_checkout_bytes_verified_and_unchanged": True,
     "all_other_base_payloads_unchanged": len(original_unchanged),
     "full_original_suite_or_complete_repository_qualified": False,
+    "same_current_dependency_environment_for_source_counterfactual": True,
     "CodeQL_alert_dismissed_or_closed": False,
     "provider_requests_manual_deployment_or_live_data_changes": False,
 }
+(out / "actual-worker-runtime.json").write_text(json.dumps({"python": sys.version, "OpenSSL": ssl.OPENSSL_VERSION, "SQLite": sqlite3.sqlite_version, "live_application_database_or_full_native_image_qualified": False}, indent=2) + "\n")
+installed = []
+for distribution in importlib.metadata.distributions():
+    installed.append({"name": distribution.metadata["Name"], "version": distribution.version, "metadata_sha256": hashlib.sha256(distribution.read_text("METADATA").encode()).hexdigest()})
+(out / "actual-installed-distributions.json").write_text(json.dumps(sorted(installed, key=lambda row: row["name"].lower()), indent=2) + "\n")
 try:
     subprocess.run(["git", "worktree", "add", "--detach", str(baseline), base], check=True)
+    baseline_checkout_before = assert_payloads(baseline, original)
+    (out / "baseline-checkout-before.json").write_text(json.dumps(baseline_checkout_before, indent=2) + "\n")
     shutil.copyfile(root / new_case, baseline / new_case)
     for label, folder in [("baseline", baseline), ("candidate", root)]:
         command = [sys.executable, "-m", "pytest", "-q", new_case, "-ra"]
@@ -74,9 +95,13 @@ try:
         commands.append({"label": label, "command": ["python", "-m", "pytest", "-q", new_case, "-ra"], "returncode": completed.returncode})
         summary[label + "_exit"] = completed.returncode
     assert hashlib.sha256((baseline / new_case).read_bytes()).hexdigest() == before[new_case]["sha256"]
-    assert_payloads(baseline, original)
+    baseline_checkout_after = assert_payloads(baseline, original)
+    assert baseline_checkout_after == baseline_checkout_before
+    (out / "baseline-checkout-after.json").write_text(json.dumps(baseline_checkout_after, indent=2) + "\n")
 finally:
-    assert_payloads(root, before)
+    checkout_after = assert_payloads(root, before)
+    assert checkout_after == checkout_before
+    (out / "checkout-after.json").write_text(json.dumps(checkout_after, indent=2) + "\n")
     (out / "source-after.json").write_text(json.dumps({"head": head, "payloads": before}, indent=2) + "\n")
     (out / "commands.json").write_text(json.dumps(commands, indent=2) + "\n")
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")

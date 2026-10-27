@@ -2,7 +2,7 @@
 
 ## Start and Diagnose
 
-Use Python 3.15.1, install `requirements.txt`, then run `python run.py doctor`. Python 3.11-3.15 are supported compatibility lines; Pillow 13 requires Python 3.11 or later. Warnings for absent provider credentials are expected for local-only use. Database or configuration failures are not.
+Use Python 3.15.2, install `requirements.txt`, then run `python run.py doctor`. Python 3.11-3.15 are supported compatibility lines; Pillow 13 requires Python 3.11 or later. Warnings for absent provider credentials are expected for local-only use. Database or configuration failures are not.
 
 Run the network-free release smoke test with `python run.py smoke` before using real records.
 
