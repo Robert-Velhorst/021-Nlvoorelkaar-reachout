@@ -32,6 +32,6 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: hai-origin-boundary-evidence
-          path: ${{ runner.temp }}/hai-origin-boundary-evidence/
+          path: ${{ github.workspace }}/.review-artifacts/hai-origin-boundary-evidence/
           if-no-files-found: error
           retention-days: 7

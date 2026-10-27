@@ -16,10 +16,10 @@ assert os.environ.get("RUNNER_ENVIRONMENT") == "github-hosted"
 assert os.environ.get("GITHUB_REPOSITORY") == "Robert-Velhorst/021-Nlvoorelkaar-reachout"
 
 root = Path.cwd()
-out = Path(os.environ["RUNNER_TEMP"]) / "hai-origin-boundary-evidence"
-out.mkdir()
+out = root / ".review-artifacts" / "hai-origin-boundary-evidence"
+out.mkdir(parents=True)
 base = "0b71dccc4b78d148360fb8c1aad978c91bea38a4"
-baseline = Path(os.environ["RUNNER_TEMP"]) / "hai-origin-baseline"
+baseline = root / ".review-baselines" / "hai-origin-baseline"
 new_case = "tests/test_hai_bridge_origin_boundary.py"
 
 
@@ -42,8 +42,12 @@ def snapshot(folder, revision):
 
 def assert_payloads(folder, rows):
     checkout = {}
+    folder = folder.resolve(strict=True)
     for name, row in rows.items():
-        actual = (folder / name).read_bytes()
+        candidate = (folder / name).resolve(strict=True)
+        if not candidate.is_relative_to(folder):
+            raise ValueError("Tracked source path escapes its checkout")
+        actual = candidate.read_bytes()
         if hashlib.sha256(actual).hexdigest() != row["sha256"]:
             attributes = git(folder, "check-attr", "-z", "eol", "--", name).split(b"\0")
             assert attributes == [name.encode(), b"eol", b"crlf", b""], name
