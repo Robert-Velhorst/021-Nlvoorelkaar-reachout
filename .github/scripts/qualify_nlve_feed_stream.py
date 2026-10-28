@@ -1,8 +1,10 @@
 """Owned hosted source/real-HTTP/current-package evidence, with fatal audit gates."""
-import collections,concurrent.futures,datetime,hashlib,json,os,pathlib,re,subprocess,sys,urllib.parse,urllib.request,venv
+import collections,concurrent.futures,datetime,hashlib,json,os,pathlib,re,subprocess,sys,tempfile,urllib.parse,urllib.request,venv
 assert os.environ.get('GITHUB_REPOSITORY')=='Robert-Velhorst/021-Nlvoorelkaar-reachout'
 root=pathlib.Path.cwd();output=root/'nlve-feed-evidence';output.mkdir(exist_ok=True)
 descriptor=json.loads((root/'.github/qualification/nlve-feed-stream.json').read_bytes())
+assert set(descriptor['targets'])=={'requests','pip','pip-audit'}
+assert all(isinstance(v,str) and re.fullmatch(r'\d+\.\d+\.\d+',v) for v in descriptor['targets'].values())
 def save(name,data):(output/name).write_bytes((json.dumps(data,indent=2)+'\n').encode())
 def snapshot():
     entries={}
@@ -21,7 +23,7 @@ def snapshot():
     return {'head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'tree':subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),'payloads':entries}
 before=snapshot();save('source-before.json',before)
 assert sys.version_info[:3]==(3,15,2)
-envroot=pathlib.Path(os.environ['RUNNER_TEMP'])/'owned-nlve-stream'
+envroot=pathlib.Path(tempfile.mkdtemp(prefix='owned-nlve-stream-'))
 commands=[]
 def run(label,argv):
     with (output/(label+'.log')).open('wb') as stream:result=subprocess.run([str(a) for a in argv],stdout=stream,stderr=subprocess.STDOUT)
@@ -41,7 +43,7 @@ bootstrap_code="import ensurepip,hashlib,json,pathlib;files=list((pathlib.Path(e
 bootstrap=json.loads(subprocess.check_output([str(python),'-c',bootstrap_code]));save('actual-CPython-bundled-pip-wheel.json',bootstrap)
 requirements=''.join(r['name']+'=='+r['version']+'\n' for r in actual['distributions']);(output/'observed-SDK-requirements.txt').write_bytes(requirements.encode())
 def public(row):
-    url='https://pypi.org/pypi/'+urllib.parse.quote(row['name'])+'/json'
+    url='https://pypi.org/pypi/'+urllib.parse.quote(row['name'],safe='')+'/json'
     try:
         with urllib.request.urlopen(url,timeout=45) as response:raw=response.read(32*1024*1024+1)
         assert len(raw)<=32*1024*1024
@@ -53,8 +55,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:versions=list(
 save('complete-installed-SDK-public-version-comparison.json',versions)
 assert run('normal-auditor-installer',[auditor,'-m','pip','install','pip=='+descriptor['targets']['pip'],'pip-audit=='+descriptor['targets']['pip-audit']])==0
 site_paths=json.loads(subprocess.check_output([str(python),'-c','import site,json;print(json.dumps(site.getsitepackages()))']))
-assert len(site_paths)==1 and pathlib.Path(site_paths[0]).resolve().is_relative_to(sdk.resolve())
-audit_exit=run('complete-unfiltered-SDK-audit',[auditor,'-m','pip_audit','--path',site_paths[0],'--format','json','--output',output/'raw-SDK-audit.json'])
+site_package_root=sdk/'lib/python3.15/site-packages'
+assert site_paths==[str(site_package_root)] and site_package_root.is_dir()
+audit_exit=run('complete-unfiltered-SDK-audit',[auditor,'-m','pip_audit','--path',site_package_root,'--format','json','--output',output/'raw-SDK-audit.json'])
 after=snapshot();save('source-after.json',after);assert before==after
 old=json.loads((output/'original-real-HTTP-results.json').read_bytes());new=json.loads((output/'candidate-real-HTTP-results.json').read_bytes())
 assert [r['name'] for r in old['cases']]==[r['name'] for r in new['cases']] and len(new['cases'])==19
