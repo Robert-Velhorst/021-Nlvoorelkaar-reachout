@@ -66,7 +66,15 @@ original_unchanged = {
     name: row for name, row in original.items()
     if name not in {"connectors/hai_bridge.py", "docs/HAI_CONNECTOR.md", "requirements.txt", "requirements-dev.txt", "requirements-build.txt", "README.md", "docs/OPERATOR_RUNBOOK.md", "docs/WEB_DEPLOYMENT.md"}
 }
-assert all(before[name] == row for name, row in original_unchanged.items())
+# The application fake response gains only the real streaming/context protocol.
+# Its original payload, json method, case body, assertions and selectors stay intact.
+fixture_name = "tests/test_web_api.py"
+fixture_original = git(root, "show", base + ":" + fixture_name).decode()
+fixture_current = git(root, "show", head + ":" + fixture_name).decode()
+fixture_addition = '        def __enter__(self):\n            return self\n\n        def __exit__(self, *unused):\n            return None\n\n        def iter_content(self, chunk_size=1):\n            for offset in range(0, len(self.content), chunk_size):\n                yield self.content[offset : offset + chunk_size]\n\n'
+assert fixture_current.count(fixture_addition) == 1
+assert fixture_current.replace(fixture_addition, "") == fixture_original
+assert all(before[name] == row for name, row in original_unchanged.items() if name != fixture_name)
 assert new_case not in original
 (out / "source-before.json").write_text(json.dumps({"head": head, "payloads": before}, indent=2) + "\n")
 (out / "base-source.json").write_text(json.dumps({"head": base, "payloads": original}, indent=2) + "\n")
@@ -74,9 +82,12 @@ assert new_case not in original
 commands = []
 summary = {
     "head": head, "base": base,
-    "original_cases_helpers_fixtures_assertions_selectors_timeouts_unchanged": True,
+    "original_case_bodies_assertions_selectors_timeouts_unchanged": True,
+    "original_app_response_fixture_protocol_added": True,
+    "original_SDK_cases_helpers_fixtures_or_commands_changed": False,
     "declared_Git_CRLF_checkout_bytes_verified_and_unchanged": True,
-    "all_other_base_payloads_unchanged": len(original_unchanged),
+    "all_other_base_payloads_unchanged": len(original_unchanged) - 1,
+    "only_original_app_fixture_change_checked_by_exact_reverse_patch": fixture_name,
     "full_original_suite_or_complete_repository_qualified": False,
     "same_current_dependency_environment_for_source_counterfactual": True,
     "CodeQL_alert_dismissed_or_closed": False,
