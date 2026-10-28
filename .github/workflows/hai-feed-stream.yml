@@ -4,6 +4,8 @@ on:
     paths:
       - connectors/hai_bridge.py
       - tests/test_hai_bridge_origin_boundary.py
+      - tests/test_web_api.py
+      - scripts/review_hai_origin_boundary.py
       - .github/qualification/nlve-feed-stream.json
       - .github/scripts/review_nlve_feed_stream.py
       - .github/scripts/qualify_nlve_feed_stream.py
