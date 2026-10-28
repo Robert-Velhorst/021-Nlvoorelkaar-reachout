@@ -50,11 +50,15 @@ def public(row):
 with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:versions=list(pool.map(public,actual['distributions']))
 save('complete-installed-SDK-public-version-comparison.json',versions)
 assert run('normal-auditor-installer',[auditor,'-m','pip','install','pip=='+descriptor['targets']['pip'],'pip-audit=='+descriptor['targets']['pip-audit']])==0
-audit_exit=run('complete-unfiltered-SDK-audit',[auditor,'-m','pip_audit','-r',output/'observed-SDK-requirements.txt','--format','json','--output',output/'raw-SDK-audit.json'])
+site_paths=json.loads(subprocess.check_output([str(python),'-c','import site,json;print(json.dumps(site.getsitepackages()))']))
+assert len(site_paths)==1 and pathlib.Path(site_paths[0]).resolve().is_relative_to(sdk.resolve())
+audit_exit=run('complete-unfiltered-SDK-audit',[auditor,'-m','pip_audit','--path',site_paths[0],'--format','json','--output',output/'raw-SDK-audit.json'])
 after=snapshot();save('source-after.json',after);assert before==after
 old=json.loads((output/'original-real-HTTP-results.json').read_bytes());new=json.loads((output/'candidate-real-HTTP-results.json').read_bytes())
 assert [r['name'] for r in old['cases']]==[r['name'] for r in new['cases']] and len(new['cases'])==19
 audit=json.loads((output/'raw-SDK-audit.json').read_bytes())
+normalize=lambda name:re.sub(r'[-_.]+','-',name.lower())
+assert {normalize(r['name']):r['version'] for r in audit['dependencies']}=={normalize(r['name']):r['version'] for r in actual['distributions']},'Audit package identity must match every installed SDK distribution, including the installer.'
 summary={'captured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source_payloads_unchanged':len(before['payloads']),'original_passed':old['passed'],'original_failed':old['failed'],'candidate_passed':new['passed'],'candidate_failed':new['failed'],'skipped':0,'SDK_distributions':actual['distributions'],'highest_public_stable_gaps':[r for r in versions if not r['highest_stable_met']],'audit_exit':audit_exit,'raw_audit_findings':sum(len(r.get('vulns',[])) for r in audit['dependencies']),'whole_Requests_original_SDK_or_native_runtime_application_deployment_or_data_acceptance':False,'existing_inactivity_timeouts_preserved_and_whole_wall_clock_deadline_not_claimed':True}
 save('qualification-summary.json',summary)
 assert old['failed']>0 and new['failed']==0 and new['passed']==19 and new['skipped']==0
