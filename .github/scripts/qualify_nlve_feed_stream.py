@@ -37,6 +37,8 @@ run('original-real-HTTP',[python,'.github/scripts/review_nlve_feed_stream.py','o
 run('candidate-real-HTTP',[python,'.github/scripts/review_nlve_feed_stream.py','candidate'])
 distribution_code="import importlib.metadata,json,platform,ssl,sys;print(json.dumps({'python':sys.version,'openssl':ssl.OPENSSL_VERSION,'platform':platform.platform(),'distributions':sorted([{'name':d.metadata['Name'],'version':d.version} for d in importlib.metadata.distributions()],key=lambda r:r['name'].lower())}))"
 actual=json.loads(subprocess.check_output([str(python),'-c',distribution_code]));save('actual-SDK-distributions.json',actual)
+bootstrap_code="import ensurepip,hashlib,json,pathlib;files=list((pathlib.Path(ensurepip.__file__).parent/'_bundled').glob('pip-*.whl'));assert len(files)==1;p=files[0];print(json.dumps({'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}))"
+bootstrap=json.loads(subprocess.check_output([str(python),'-c',bootstrap_code]));save('actual-CPython-bundled-pip-wheel.json',bootstrap)
 requirements=''.join(r['name']+'=='+r['version']+'\n' for r in actual['distributions']);(output/'observed-SDK-requirements.txt').write_bytes(requirements.encode())
 def public(row):
     url='https://pypi.org/pypi/'+urllib.parse.quote(row['name'])+'/json'
