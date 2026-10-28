@@ -97,19 +97,30 @@ def sync_feed(api_url: str, token: str, output_path: str, limit: int = 100) -> d
     if not 1 <= int(limit) <= 500:
         raise ValueError("limit must be between 1 and 500")
 
-    response = requests.get(
-        f"{base_url}/api/v1/hai/feed",
-        params={"limit": int(limit)},
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-        auth=_BearerAuth(token),
-        timeout=(5, 15),
-        allow_redirects=False,
-    )
-    if response.status_code != 200:
-        raise RuntimeError(f"NLVE HAI feed request failed with HTTP {response.status_code}")
-    if len(response.content) > 5 * 1024 * 1024:
-        raise RuntimeError("NLVE HAI feed exceeds 5 MiB")
-    feed = _validate_feed(response.json())
+    try:
+        with requests.get(
+            f"{base_url}/api/v1/hai/feed",
+            params={"limit": int(limit)},
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+            auth=_BearerAuth(token),
+            timeout=(5, 15),
+            allow_redirects=False,
+            stream=True,
+        ) as response:
+            if response.status_code != 200:
+                raise RuntimeError(f"NLVE HAI feed request failed with HTTP {response.status_code}")
+            payload = bytearray()
+            for chunk in response.iter_content(chunk_size=64 * 1024):
+                if len(payload) + len(chunk) > 5 * 1024 * 1024:
+                    raise RuntimeError("NLVE HAI feed exceeds 5 MiB")
+                payload.extend(chunk)
+    except requests.RequestException:
+        raise RuntimeError("NLVE HAI feed request failed") from None
+    try:
+        decoded = json.loads(payload)
+    except (ValueError, UnicodeError):
+        raise RuntimeError("NLVE returned invalid JSON") from None
+    feed = _validate_feed(decoded)
 
     destination = Path(output_path).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)

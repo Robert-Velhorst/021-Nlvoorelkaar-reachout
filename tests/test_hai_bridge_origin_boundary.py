@@ -19,6 +19,7 @@ def capture_send(monkeypatch):
         response = requests.Response()
         response.status_code = 200
         response._content = b'{"cursor":"owned","items":[]}'
+        response._content_consumed = True
         return response
 
     monkeypatch.setattr(requests.Session, "send", send)
