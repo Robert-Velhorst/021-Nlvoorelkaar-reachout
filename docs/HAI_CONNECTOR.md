@@ -30,3 +30,5 @@ Register that file in HAI as:
 For separate hosts, point `NLVE_API_URL` at the verified Hetzner HTTPS origin behind the approved reverse proxy. The bearer token remains in an HTTP header and is never placed in a feed URL or HAI source URI. Schedule the bridge at a conservative interval; HAI deduplicates stable item revisions during sync.
 
 HAI remains read-only. It can propose or organize review work, but it cannot approve drafts, send messages, clear Safety Stop, or mutate NLvoorelkaar Reachout.
+
+`NLVE_API_URL` is an origin only: HTTPS plus hostname and optional port, or HTTP on `127.0.0.1`, `localhost`, or `[::1]`. URL usernames/passwords, paths beyond `/`, query strings, fragments, whitespace, control characters and encoded authorities are rejected before a request. The bridge constructs the fixed feed path itself and rejects redirects. Explicit bearer authentication prevents ambient `.netrc` entries from replacing the selected API token. The operator remains responsible for choosing the verified destination; this is not a public-host allowlist or a complete SSRF closure claim.

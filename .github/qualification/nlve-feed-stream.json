@@ -1,0 +1,22 @@
+{
+  "repository": "Robert-Velhorst/021-Nlvoorelkaar-reachout",
+  "baseline": "1821a254f46d893e413aaf3719ed7a444d966267",
+  "baseline_bridge_sha256": "3100a358641401b06e0be4c69297ec51b6c54dbb0c51b4e2468cb542218ae8f0",
+  "candidate_bridge_sha256": "0218485ba5c6785cae5f2ee46bede1e18927551e876b9806378b7bea45564065",
+  "targets": {
+    "requests": "2.34.2",
+    "pip": "26.2.2",
+    "pip-audit": "2.10.1"
+  },
+  "python": "3.15.2",
+  "decoded_body_limit": 5242880,
+  "stream_chunk_size": 65536,
+  "total_wall_clock_deadline_added": false,
+  "existing_connect_read_inactivity_timeouts_preserved": [
+    5,
+    15
+  ],
+  "original_baseline_main_tests_changed": false,
+  "existing_owned_origin_test_fixture_change": "Mark its cached Requests Response consumed, as required by the real Requests API; all42cases/assertions unchanged.",
+  "no_origin_proxy_CA_or_auth_policy_change": true
+}

@@ -3,22 +3,73 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
+import re
 import tempfile
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
 
 def _validate_url(raw_url: str) -> str:
-    parsed = urlparse(raw_url)
-    if parsed.scheme == "https" and parsed.hostname:
-        return raw_url.rstrip("/")
-    if parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost", "::1"}:
-        return raw_url.rstrip("/")
-    raise ValueError("NLVE_API_URL must use HTTPS unless it points to loopback")
+    """Accept one operator-selected origin, without URL credentials or routing data."""
+    error = "NLVE_API_URL must be an HTTPS origin or a literal loopback HTTP origin"
+    if not isinstance(raw_url, str) or re.search(r"[\s\\\x00-\x1f\x7f]", raw_url):
+        raise ValueError(error)
+    try:
+        parsed = urlsplit(raw_url)
+        host = parsed.hostname
+        port = parsed.port
+        if (
+            not host
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+            or "?" in raw_url
+            or "#" in raw_url
+            or "%" in parsed.netloc
+            or (port is not None and not 1 <= port <= 65535)
+            or (parsed.netloc.endswith(":"))
+        ):
+            raise ValueError(error)
+        if parsed.scheme != "https" and not (
+            parsed.scheme == "http" and host in {"127.0.0.1", "localhost", "::1"}
+        ):
+            raise ValueError(error)
+        if ":" in host:
+            if not re.fullmatch(r"\[[0-9a-fA-F:.]+\](?::[0-9]+)?", parsed.netloc):
+                raise ValueError(error)
+            authority = "[" + ipaddress.IPv6Address(host).compressed + "]"
+        else:
+            if "[" in parsed.netloc or "]" in parsed.netloc:
+                raise ValueError(error)
+            authority = host.encode("idna").decode("ascii").lower()
+            if len(authority) > 253 or not all(
+                re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+                for label in authority.removesuffix(".").split(".")
+            ):
+                raise ValueError(error)
+        if port is not None:
+            authority += f":{port}"
+        return urlunsplit((parsed.scheme, authority, "", "", ""))
+    except (ValueError, UnicodeError):
+        raise ValueError(error) from None
+
+
+class _BearerAuth(requests.auth.AuthBase):
+    """Keep an explicit bearer token authoritative over ambient netrc credentials."""
+
+    def __init__(self, token: str):
+        self._token = token
+
+    def __call__(self, request):
+        request.headers["Authorization"] = f"Bearer {self._token}"
+        return request
 
 
 def _validate_feed(payload: object) -> dict:
@@ -46,18 +97,30 @@ def sync_feed(api_url: str, token: str, output_path: str, limit: int = 100) -> d
     if not 1 <= int(limit) <= 500:
         raise ValueError("limit must be between 1 and 500")
 
-    response = requests.get(
-        f"{base_url}/api/v1/hai/feed",
-        params={"limit": int(limit)},
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-        timeout=(5, 15),
-        allow_redirects=False,
-    )
-    if response.status_code != 200:
-        raise RuntimeError(f"NLVE HAI feed request failed with HTTP {response.status_code}")
-    if len(response.content) > 5 * 1024 * 1024:
-        raise RuntimeError("NLVE HAI feed exceeds 5 MiB")
-    feed = _validate_feed(response.json())
+    try:
+        with requests.get(
+            f"{base_url}/api/v1/hai/feed",
+            params={"limit": int(limit)},
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+            auth=_BearerAuth(token),
+            timeout=(5, 15),
+            allow_redirects=False,
+            stream=True,
+        ) as response:
+            if response.status_code != 200:
+                raise RuntimeError(f"NLVE HAI feed request failed with HTTP {response.status_code}")
+            payload = bytearray()
+            for chunk in response.iter_content(chunk_size=64 * 1024):
+                if len(payload) + len(chunk) > 5 * 1024 * 1024:
+                    raise RuntimeError("NLVE HAI feed exceeds 5 MiB")
+                payload.extend(chunk)
+    except requests.RequestException:
+        raise RuntimeError("NLVE HAI feed request failed") from None
+    try:
+        decoded = json.loads(payload)
+    except (ValueError, UnicodeError):
+        raise RuntimeError("NLVE returned invalid JSON") from None
+    feed = _validate_feed(decoded)
 
     destination = Path(output_path).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)

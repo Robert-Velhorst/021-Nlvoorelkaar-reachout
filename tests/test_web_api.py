@@ -110,6 +110,16 @@ def test_hai_bridge_uses_bearer_header_and_atomic_output(tmp_path, monkeypatch):
         status_code = 200
         content = b'{"cursor":"abc","items":[]}'
 
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *unused):
+            return None
+
+        def iter_content(self, chunk_size=1):
+            for offset in range(0, len(self.content), chunk_size):
+                yield self.content[offset : offset + chunk_size]
+
         @staticmethod
         def json():
             return {"cursor": "abc", "items": []}
