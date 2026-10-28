@@ -10,8 +10,14 @@ def snapshot():
         if not entry:continue
         left,name=entry.split(b'\t');mode,blob,stage=left.decode().split();assert stage=='0'
         path=root/name.decode();payload=os.readlink(path).encode() if mode=='120000' else path.read_bytes()
-        assert hashlib.sha1(b'blob '+str(len(payload)).encode()+b'\0'+payload).hexdigest()==blob,name
-        entries[name.decode()]={'mode':mode,'blob':blob,'sha256':hashlib.sha256(payload).hexdigest()}
+        canonical=payload;eol=None
+        if hashlib.sha1(b'blob '+str(len(payload)).encode()+b'\0'+payload).hexdigest()!=blob:
+            attributes=subprocess.check_output(['git','check-attr','-z','eol','--',name.decode()]).split(b'\0')
+            assert attributes==[name,b'eol',b'crlf',b''],name
+            canonical=subprocess.check_output(['git','cat-file','blob',blob])
+            assert b'\r\n' not in canonical and payload==canonical.replace(b'\n',b'\r\n'),name
+            eol='crlf'
+        entries[name.decode()]={'mode':mode,'blob':blob,'sha256':hashlib.sha256(canonical).hexdigest(),'checkout_sha256':hashlib.sha256(payload).hexdigest(),'declared_checkout_eol':eol}
     return {'head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'tree':subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),'payloads':entries}
 before=snapshot();save('source-before.json',before)
 assert sys.version_info[:3]==(3,15,2)
@@ -37,7 +43,7 @@ def public(row):
     try:
         with urllib.request.urlopen(url,timeout=45) as response:raw=response.read(32*1024*1024+1)
         assert len(raw)<=32*1024*1024
-        data=json.loads(raw);stable=[v for v,files in data['releases'].items() if re.fullmatch(r'\d+\.\d+\.\d+',v) and files and any(not f.get('yanked') for f in files)]
+        data=json.loads(raw);stable=[v for v,files in data['releases'].items() if re.fullmatch(r'\d+(?:\.\d+){1,3}',v) and files and any(not f.get('yanked') for f in files)]
         highest=max(stable,key=lambda v:tuple(map(int,v.split('.'))))
         return {**row,'source':url,'highest_public_stable':highest,'highest_stable_met':row['version']==highest,'query':'ok','metadata_sha256':hashlib.sha256(raw).hexdigest()}
     except Exception as error:return {**row,'query':'unavailable','highest_stable_met':False,'error':str(error)}
